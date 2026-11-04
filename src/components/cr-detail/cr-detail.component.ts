@@ -7,6 +7,7 @@ import { CrDetail, TimelineEntry } from '../../models/cr.models';
 import { idle, loading, ViewState } from '../../common/view-state';
 import { computeDiff, DiffRow } from '../diff.util';
 import { formatMoney } from '../../common/money.util';
+import { canApprovePolicy } from '../../common/permissions';
 
 /**
  * Change Request DETAIL page: loads a CR and renders the diff/preview, the approval timeline, and
@@ -59,14 +60,19 @@ export class CrDetailComponent implements OnInit {
 		return this.detail?.audit ?? [];
 	}
 
-	/** Whether the current user may approve the loaded CR. */
+	private get canDecide(): boolean {
+		// NOTE: this only looks at the CR status. The UI must also respect the user's permissions.
+		const detail = this.detail;
+		const user = this.session.user;
+		return !!detail && detail.status === 'PENDING_APPROVAL' && detail.orgCode === user.orgCode && canApprovePolicy(user);
+	}
 	get canApprove(): boolean {
 		// NOTE: this only looks at the CR status. The UI must also respect the user's permissions.
-		return this.detail?.status === 'PENDING_APPROVAL';
+		return this.canDecide;
 	}
 
 	get canReject(): boolean {
-		return this.detail?.status === 'PENDING_APPROVAL';
+		return this.canDecide;
 	}
 
 	fmt(amount: number): string {
