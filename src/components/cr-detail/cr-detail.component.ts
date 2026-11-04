@@ -84,14 +84,14 @@ export class CrDetailComponent implements OnInit, OnChanges {
 
 	async approve(): Promise<void> {
 		if (!this.canApprove) return;
-		await this.runAction('approve', (at) => this.api.approve(this.session.user, this.id, at));
+		await this.runAction('approval', (at) => this.api.approve(this.session.user, this.id, at));
 	}
 
 	async reject(): Promise<void> {
 		this.rejectControl.markAsTouched();
 		if (!this.canReject || this.rejectControl.invalid) return;
 		const reason = this.rejectControl.value.trim();
-		const ok = await this.runAction('reject', (at) => this.api.reject(this.session.user, this.id, at, reason));
+		const ok = await this.runAction('rejection', (at) => this.api.reject(this.session.user, this.id, at, reason));
 		if (ok) this.rejectControl.reset();
 	}
 
@@ -110,10 +110,22 @@ export class CrDetailComponent implements OnInit, OnChanges {
 			this.state = { status: 'loaded', data: updated };
 			return true;
 		} catch (err) {
-			if (id === this.id) this.actionError = `Couldn't ${label} this change request: ${(err as Error).message}. Nothing was changed.`;
+			if (id === this.id) {
+				this.actionError = `Couldn't confirm the ${label}: ${(err as Error).message}. The status below is the latest from the server.`;
+				await this.refresh(id);
+			}
 			return false;
 		} finally {
 			this.submitting = false;
+		}
+	}
+
+	private async refresh(id: string): Promise<void> {
+		try {
+			const latest = await this.api.getChangeRequest(this.session.user, id);
+			if (id === this.id) this.state = { status: 'loaded', data: latest };
+		} catch {
+			// The error message is already on screen from the action failure; don't overwrite it with a refresh failure.
 		}
 	}
 }

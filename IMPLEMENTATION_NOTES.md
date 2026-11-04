@@ -16,7 +16,8 @@
 **Task 3 & 4: detail**
 
 - Timeline is sorted oldest first.
-- Approve/Reject call the API, with a double-click guard and an error message if they fail.
+- Approve/Reject call the API, with a double-click guard. If one fails, an error is shown and
+  the CR is reloaded so the status on screen matches the server.
 - Reject needs a reason (not empty, not only spaces).
 - The detail page now reloads when you pick another CR (before, it stayed on the first one).
 
@@ -38,7 +39,7 @@ Approve / Reject buttons.
 | --------------------------------------------------- | ---------------------------------------------- |
 | Approve/Reject need pending, same org, permission   | `canDecide`, used by both buttons              |
 | A double click sends only one request               | `runAction()` exits if one is already running  |
-| A failed action doesn't break the page              | only `actionError` is set; the user can retry  |
+| A failed action never leaves a stale status         | shows `actionError`, then reloads the CR       |
 | A late response never shows on another CR           | `runAction()` drops it if the CR changed       |
 | Reject needs a real reason                          | blank/whitespace is blocked; reason is trimmed |
 | The UI never changes the API data                   | the timeline sorts a copy                      |
@@ -51,7 +52,8 @@ TestBed, because what matters is what the user sees (disabled buttons, errors, o
 - diff: quantity, price and description changes, and identical items
 - list: filter and the no-results message
 - detail: timeline order, viewer can't act, non-pending CR can't be approved
-- approve works, approve failure keeps the page and shows an error, double click sends one request
+- approve works, double click sends one request
+- approve failure shows an error and reloads the CR, so a saved approval can't be sent twice
 - reject is blocked without a reason, and reject works with a trimmed reason
 
 For failures I used the mock API's `failNext` instead of real delays. I didn't test switching CRs

@@ -67,15 +67,16 @@ describe('CrDetailComponent', () => {
 		expect(actions[actions.length - 1].textContent).toContain('APPROVE');
 	});
 
-	it('keeps the CR on screen and shows an error when approve fails', async () => {
+	it('refreshes the CR after a failed approve so a retry cannot approve twice', async () => {
 		const fixture = await render(users.approver, 'CR-1');
 		TestBed.inject(CrApiService).failNext = true;
 		fixture.nativeElement.querySelector('.cr-actions__approve').click();
 		await flush();
+		await flush();
 		fixture.detectChanges();
-		expect(fixture.nativeElement.querySelector('.cr-actions__error').textContent).toContain("Couldn't approve");
-		expect(fixture.nativeElement.querySelector('.cr-detail__header .cr-status').textContent).toContain('PENDING_APPROVAL');
-		expect(fixture.nativeElement.querySelector('.cr-actions__approve').disabled).toBe(false); // can retry
+		expect(fixture.nativeElement.querySelector('.cr-actions__error').textContent).toContain("Couldn't confirm the approval");
+		expect(fixture.nativeElement.querySelector('.cr-detail__header .cr-status').textContent).toContain('APPROVED');
+		expect(fixture.nativeElement.querySelector('.cr-actions__approve').disabled).toBe(true);
 	});
 
 	it('sends only one approve when clicked twice while in flight', async () => {
