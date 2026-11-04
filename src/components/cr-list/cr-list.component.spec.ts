@@ -30,4 +30,27 @@ describe('CrListComponent', () => {
 		expect(fixture.nativeElement.querySelector('.cr-list__empty')).not.toBeNull();
 		expect(fixture.nativeElement.querySelector('.cr-list__table')).toBeNull();
 	});
+
+	it('narrows the rendered rows when a status filter is chosen', async () => {
+		const fixture = await render(users.approver);
+		const select: HTMLSelectElement = fixture.nativeElement.querySelector('.cr-list__filter');
+		select.value = 'PENDING_APPROVAL';
+		select.dispatchEvent(new Event('change'));
+		fixture.detectChanges();
+
+		const rows = fixture.nativeElement.querySelectorAll('.cr-list__row');
+		expect(rows.length).toBe(1);
+		expect(rows[0].textContent).toContain('CR-1');
+	});
+
+	it('shows a no-match message when the filter matches nothing', async () => {
+		const fixture = await render(users.approver);
+		const select: HTMLSelectElement = fixture.nativeElement.querySelector('.cr-list__filter');
+		select.value = 'REJECTED';
+		select.dispatchEvent(new Event('change'));
+		fixture.detectChanges();
+
+		expect(fixture.nativeElement.querySelectorAll('.cr-list__row').length).toBe(0);
+		expect(fixture.nativeElement.querySelector('.cr-list__no-match')).not.toBeNull();
+	});
 });
