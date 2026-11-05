@@ -35,14 +35,14 @@ Approve / Reject buttons.
 
 ## 3. Invariants I keep
 
-| Invariant                                           | How / where                                    |
-| --------------------------------------------------- | ---------------------------------------------- |
-| Approve/Reject need pending, same org, permission   | `canDecide`, used by both buttons              |
-| A double click sends only one request               | `runAction()` exits if one is already running  |
-| A failed action never leaves a stale status         | shows `actionError`, then reloads the CR       |
-| A late response never shows on another CR           | `runAction()` drops it if the CR changed       |
-| Reject needs a real reason                          | blank/whitespace is blocked; reason is trimmed |
-| The UI never changes the API data                   | the timeline sorts a copy                      |
+| Invariant                                         | How / where                                    |
+| ------------------------------------------------- | ---------------------------------------------- |
+| Approve/Reject need pending, same org, permission | `canDecide`, used by both buttons              |
+| A double click sends only one request             | `runAction()` exits if one is already running  |
+| A failed action never leaves a stale status       | shows `actionError`, then reloads the CR       |
+| A late response never shows on another CR         | `runAction()` drops it if the CR changed       |
+| Reject needs a real reason                        | blank/whitespace is blocked; reason is trimmed |
+| The UI never changes the API data                 | the timeline sorts a copy                      |
 
 ## 4. Testing strategy
 
@@ -80,3 +80,29 @@ quickly while one is loading.
 - Show exactly which field changed in the diff, plus line totals
 - Accessibility: keyboard support for list rows and screen-reader messages
 - "Approving..." text on the button while it's working
+
+## 6. Where I used AI
+
+I built this solution myself, step by step, using Claude (chat, and Claude Code in VS Code) as a
+reviewer and guide. I made the changes in the codebase, made the design decisions, and checked
+everything by running the tests, lint and build and by clicking through the app.
+
+**Written by me**
+
+- The diff fix: `isSameLine()` in `diff.util.ts`, plus the unit-price regression test in `diff.spec.ts`.
+- The timeline sort (I wrote it with `localeCompare`, then switched to `Date.parse` after review so
+  mixed date formats still sort correctly).
+- First versions of the permission check and the reject-reason validation, which I refined after review.
+- Manual testing that found real issues: the timeline fields running together on screen, and the detail
+  page showing "Not found" after switching users (both explained in my notes and video).
+- The design decisions: counting a description change as a change, sharing one permission rule for
+  Approve and Reject, and showing Approve disabled (not hidden) for read-only users.
+- Spotting that the mock API saves an approval before reporting a network error, which led to the
+  reload-after-failure fix.
+
+**Where AI helped**
+
+- Explaining the codebase and the domain at the start.
+- Drafting parts of the action flow (`runAction()` and its guards)
+- Drafting parts of the testing and some guiding through out the coding
+- Drafting these notes, which I edited.
